@@ -62,6 +62,12 @@ range_layout = [
      ],
     [
         # Warning message
+        sg.Text("Or single month"),
+        sg.Input(key='single_month', size=(5,3)),
+        sg.Button("Go", key='gostatsSingle')
+    ],
+    [
+        # Warning message
         sg.Text("Please enter proper months in proper format; ex: 01.21", key='properpls', visible=False)
     ],
 ]
@@ -100,6 +106,7 @@ stats_left = [
      sg.Button("Submit", key='redoStats'),],
 ]
 stats_right = [
+    [sg.Button("Back", key='gorange3', visible=False), sg.Button("Home", key='gohome3', visible=False),],
     [sg.Text("Total Stats", ), sg.Text("", key='-statsStats-'), ],
     [sg.Text("kWh:", ), sg.Text("", key='-statsKwh-'), ],
     [sg.Text("GHG:", ), sg.Text("", key='-statsGhg-'), ],
@@ -110,9 +117,9 @@ stats_right = [
 ]
 stats_layout = [
     [
-        sg.Column(stats_left),
+        sg.Column(stats_left, key='statsLeft'),
         sg.VSeperator(),
-        sg.Column(stats_right),
+        sg.Column(stats_right, key='statsRight'),
     ]
 ]
 
@@ -251,11 +258,11 @@ def ifDateValid(month):
     return False
 
 # check if month is greater than the earliest month available
-def ifDateGreater(month):
-    if int(month[3:5]) > int(allData.sheetnames[0][3:5]):
+def ifDateGreater(month2, month1):
+    if int(month1[3:5]) > int(month2[3:5]):
         return True
-    elif int(month[3:5]) == int(allData.sheetnames[0][3:5]):
-        if int(month[0:2]) >= int(allData.sheetnames[0][0:2]):
+    elif int(month1[3:5]) == int(month2[3:5]):
+        if int(month1[0:2]) >= int(month2[0:2]):
             return True
     return False
 
@@ -296,7 +303,8 @@ while True:
     elif event == 'gostats':
         # check if date entered in range page is valid, in format and if it's in the book
         if ifDateValid(values['range_time1']) and ifDateValid(values['range_time2']) and \
-                ifDateInRange(values['range_time1']) and ifDateInRange(values['range_time2']):
+                ifDateInRange(values['range_time1']) and ifDateInRange(values['range_time2']) and \
+                ifDateGreater(values['range_time1'], values['range_time2']):
             _VARS['window']['properpls'].update(visible=False)
             _VARS['window']['homepage'].update(visible=False)
             _VARS['window']['rangepage'].update(visible=False)
@@ -309,29 +317,41 @@ while True:
         else:
             # shows the warning signal
             _VARS['window']['properpls'].update(visible=True)
+    elif event == 'gostatsSingle':
+        if ifDateValid(values['single_month']) and ifDateInRange(values['single_month']):
+            _VARS['window']['properpls'].update(visible=False)
+            _VARS['window']['homepage'].update(visible=False)
+            _VARS['window']['rangepage'].update(visible=False)
+            # then it goes to stats page and draws a month vs net benefit bar graph by default
+            _VARS['window']['statspage'].update(visible=True)
+            updateStats("stats", values['single_month'], values['single_month'])
+            _VARS['window']['statsLeft'].update(visible=False)
+            _VARS['window']['gorange3'].update(visible=True)
+            _VARS['window']['gohome3'].update(visible=True)
+        else:
+            _VARS['window']['properpls'].update(visible=True)
+
     # these two are just moving page events
-    elif event == 'gorange' or event == 'gorange2':
+    elif event == 'gorange' or event == 'gorange2' or event == 'gorange3':
+        _VARS['window']['gorange3'].update(visible=False)
+        _VARS['window']['gohome3'].update(visible=False)
+        _VARS['window']['statsRight'].update(visible=False)  # necessary for rearranging order of layout
+        _VARS['window']['statsLeft'].update(visible=True)
+        _VARS['window']['statsRight'].update(visible=True)
         _VARS['window']['homepage'].update(visible=False)
         _VARS['window']['statspage'].update(visible=False)
         _VARS['window']['rangepage'].update(visible=True)
-    elif event == 'gohome' or event == 'gohome2':
+    elif event == 'gohome' or event == 'gohome2' or event == 'gorange3':
+        _VARS['window']['gorange3'].update(visible=False)
+        _VARS['window']['gohome3'].update(visible=False)
+        _VARS['window']['statsRight'].update(visible=False)
+        _VARS['window']['statsLeft'].update(visible=True)
+        _VARS['window']['statsRight'].update(visible=True)
         _VARS['window']['rangepage'].update(visible=False)
         _VARS['window']['statspage'].update(visible=False)
         _VARS['window']['homepage'].update(visible=True)
-
-        """
-            What it does when the user submits is submits, takes the input workbook from submit button,
-            makes a worksheet out of that workbook. It takes the sheetnames from all the data it has so 
-            far, and gets the value from text entry about the month the data's about. It gets the 
-            numerical value of the month and year.
-            While the latest year is less than the year the client inputs, it just keeps adding sheets
-            with increasing months and years. Once our data's latest sheet's name reaches the same year 
-            as the input year, it starts increasing month until input month==latest. After that, there 
-            will definitely exist a sheet with same month/year as the input, where the program will 
-            copy all the data from the input data to the program's database's matching sheet and save 
-            the new, edited workbook to a file inside the program."""
     # when user submits new data, first checks if it's proper format and it's greater than earliest
-    elif event == 'Submit' and ifDateValid(values['time']) and ifDateGreater(values['time']):
+    elif event == 'Submit' and ifDateValid(values['time']) and ifDateGreater(values['time'], allData.sheetnames[0]):
         _VARS['fig_agg'].get_tk_widget().forget()  # erases main bar graph
         inputS = openpyxl.load_workbook(values['-in-'])  # gets the input workbook
         inputA = inputS.active  # gets the single sheet from input; can use this to get data
