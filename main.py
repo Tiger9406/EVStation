@@ -30,11 +30,11 @@ home_right_column = [
     #separated two texts so easy to update second part
     [sg.Text("Total Stats", ), sg.Text("", key='-totalStats-'), ],
     [sg.Text("kWh:", ), sg.Text("", key='-totalKwh-'), ],
-    [sg.Text("GHG:", ), sg.Text("", key='-totalGhg-'), ],
-    [sg.Text("Sessions:", ), sg.Text("", key='-totalSessions-'), ],
-    [sg.Text("Value of kWh:", ), sg.Text("", key='-totalValue-'), ],
-    [sg.Text("Net Benefit:", ), sg.Text("", key='-totalBen-'), ],
-    [sg.Text("Employee Paid: ", ), sg.Text("", key='-totalEmp-'), ],
+    [sg.Text("gHg (tCO2e):", ), sg.Text("", key='-totalGhg-'), ],
+    [sg.Text("Sessions (#):", ), sg.Text("", key='-totalSessions-'), ],
+    [sg.Text("kWh Value ($):", ), sg.Text("", key='-totalValue-'), ],
+    [sg.Text("Net Benefit ($):", ), sg.Text("", key='-totalBen-'), ],
+    [sg.Text("Employee Paid ($):", ), sg.Text("", key='-totalEmp-'), ],
 ]
 
 #combining all displays into one
@@ -74,7 +74,7 @@ range_layout = [
 
 #Stats page layout
 stats_left = [
-    [sg.Button("Back", key='gorange2'), sg.Button("Home", key='gohome2'), sg.Text("please just work")],
+    [sg.Button("Back", key='gorange2'), sg.Button("Home", key='gohome2'), ],
     [sg.Canvas(key='figCanvas2'), ],
     # can't directly get text of radio buttons so decided to add a hidden text with the same text
     # afterwards, so easy retrieval of x and y labels
@@ -98,22 +98,22 @@ stats_left = [
      sg.R(text='Sessions (#)', group_id="RADIO2", key='buttonyC'),
      sg.Text('Sessions (#)', key="textyC", visible=False),
      sg.R(text='kWh Value ($)', group_id="RADIO2", key='buttonyG'),
-     sg.Text('kWh Value ($)', key="textyG", visible=False),
+     sg.Text('kWh Value (Dollars)', key="textyG", visible=False),
      sg.R(text='Net Benefit ($)', group_id="RADIO2", key='buttonyI'),
-     sg.Text('Net Benefit ($)', key="textyI", visible=False),
+     sg.Text('Net Benefit (Dollars)', key="textyI", visible=False),
      sg.R(text='Employee Paid ($)', group_id="RADIO2", key='buttonyH'),
-     sg.Text('Employee Paid ($)', key="textyH", visible=False),
+     sg.Text('Employee Paid (Dollars)', key="textyH", visible=False),
      sg.Button("Submit", key='redoStats'),],
 ]
 stats_right = [
     [sg.Button("Back", key='gorange3', visible=False), sg.Button("Home", key='gohome3', visible=False),],
     [sg.Text("Total Stats", ), sg.Text("", key='-statsStats-'), ],
     [sg.Text("kWh:", ), sg.Text("", key='-statsKwh-'), ],
-    [sg.Text("GHG:", ), sg.Text("", key='-statsGhg-'), ],
-    [sg.Text("Sessions:", ), sg.Text("", key='-statsSessions-'), ],
-    [sg.Text("Value of kWh", ), sg.Text("", key='-statsValue-'), ],
-    [sg.Text("Net Benefit:", ), sg.Text("", key='-statsBen-'), ],
-    [sg.Text("Employee Paid: ", ), sg.Text("", key='-statsEmp-'), ],
+    [sg.Text("gHg (tCO2e):", ), sg.Text("", key='-statsGhg-'), ],
+    [sg.Text("Sessions (#):", ), sg.Text("", key='-statsSessions-'), ],
+    [sg.Text("kWh Value ($):", ), sg.Text("", key='-statsValue-'), ],
+    [sg.Text("Net Benefit ($):", ), sg.Text("", key='-statsBen-'), ],
+    [sg.Text("Employee Paid ($):", ), sg.Text("", key='-statsEmp-'), ],
 ]
 stats_layout = [
     [
@@ -242,12 +242,12 @@ def getRangeTotals(start, end):
 # btw this project made me love f strings
 def updateStats(page, month1, month2):
     totalStats = getRangeTotals(month1, month2)
-    _VARS['window'][f'-{page}Kwh-'].update(totalStats[0])
-    _VARS['window'][f'-{page}Ghg-'].update(totalStats[1])
-    _VARS['window'][f'-{page}Sessions-'].update(totalStats[2])
-    _VARS['window'][f'-{page}Value-'].update(totalStats[3])
-    _VARS['window'][f'-{page}Ben-'].update(totalStats[4])
-    _VARS['window'][f'-{page}Emp-'].update(totalStats[5])
+    _VARS['window'][f'-{page}Kwh-'].update(round(totalStats[0], 2))
+    _VARS['window'][f'-{page}Ghg-'].update(round(totalStats[1], 2))
+    _VARS['window'][f'-{page}Sessions-'].update(round(totalStats[2], 2))
+    _VARS['window'][f'-{page}Value-'].update(round(totalStats[3], 2))
+    _VARS['window'][f'-{page}Ben-'].update(round(totalStats[4], 2))
+    _VARS['window'][f'-{page}Emp-'].update(round(totalStats[5], 2))
 
 # check if the month inputted is in correct format
 def ifDateValid(month):
@@ -391,9 +391,11 @@ while True:
         # redraws main bar and updates stats on right of home page
         drawMainBar()
         updateStats("total", allData.sheetnames[0], allData.sheetnames[-1])
-    elif event == 'redoStats':  # if user wants to change graph labels in stats page
+    # if user wants to change graph labels in stats page
+    elif event == 'redoStats':
         if values['buttonxMonth']:  # makes bar graph if x is month
             labelButton = findLabelButton('y')
+            # gets invisible text labeled next to radio buttons because can't get radio text
             y_label = _VARS['window'][f'texty{labelButton[-1]}'].get()
             drawBar(rangeMonth(values['range_time1'], values['range_time2']),
                     rangeData(values['range_time1'], values['range_time2'], labelButton[-1]),
@@ -405,6 +407,6 @@ while True:
             y_label = _VARS['window'][f'texty{labelButtony[-1]}'].get()
             drawScatter(rangeData(values['range_time1'], values['range_time2'], labelButtonx[-1]),
                         rangeData(values['range_time1'], values['range_time2'], labelButtony[-1]),
-                        'figCanvas2', x_label, y_label, x_label + ' vs ' + y_label)
+                        'figCanvas2', x_label, y_label, x_label + '  vs  ' + y_label)
 
 _VARS['window'].close()
