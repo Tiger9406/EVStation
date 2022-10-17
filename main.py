@@ -363,41 +363,45 @@ while True:
         inputA = inputS.active  # gets the single sheet from input; can use this to get data
         allSheets = allData.sheetnames  # gets months in system
         time = values['time']  # the month user says data is from
-
-        # this part if for if input month is later than the latest month, so creates empty
-        # months until the inputted month
-        lastMonth = int(allSheets[-1][0:2])
-        lastYear = int(allSheets[-1][3:5])
-        while int(time[3:5]) > lastYear:
-            if lastMonth == 12:
-                lastMonth = 1
-                lastYear += 1
-            else:
-                lastMonth += 1
-            if lastMonth < 10:
-                allData.create_sheet("0" + str(lastMonth) + "." + str(lastYear))
-            else:
-                allData.create_sheet(str(lastMonth) + "." + str(lastYear))
-        if int(time[3:5]) == lastYear:
-            while int(time[0:2]) > lastMonth:
-                lastMonth += 1
+        # make sure book is in proper format
+        if (inputA['A1'].value == 'Driver Name' and inputA['C1'].value == 'Number of Sessions' and
+            inputA['D1'].value == 'Total kWh' and inputA['E1'].value == 'Total GHG' and
+            inputA['G1'].value == 'Value of kWh' and inputA['H1'].value == 'Paid by Employee' and
+            inputA['I1'].value == 'Net Benefit'):
+            # this part if for if input month is later than the latest month, so creates empty
+            # months until the inputted month
+            lastMonth = int(allSheets[-1][0:2])
+            lastYear = int(allSheets[-1][3:5])
+            while int(time[3:5]) > lastYear:
+                if lastMonth == 12:
+                    lastMonth = 1
+                    lastYear += 1
+                else:
+                    lastMonth += 1
                 if lastMonth < 10:
                     allData.create_sheet("0" + str(lastMonth) + "." + str(lastYear))
                 else:
                     allData.create_sheet(str(lastMonth) + "." + str(lastYear))
-        print('ues')
+            if int(time[3:5]) == lastYear:
+                while int(time[0:2]) > lastMonth:
+                    lastMonth += 1
+                    if lastMonth < 10:
+                        allData.create_sheet("0" + str(lastMonth) + "." + str(lastYear))
+                    else:
+                        allData.create_sheet(str(lastMonth) + "." + str(lastYear))
+            print('ues')
 
-        # finally done with creating sheets if it's too late
-        # now move on to actually copying all data into book
-        bookData = allData[time]
-        # for data in inputA, copies into bookData (the input month in the system's book)
-        for row in inputA.rows:
-            for cell in row:
-                bookData[cell.coordinate] = cell.value
-        allData.save('testingBook.xlsx')
-        # redraws main bar and updates stats on right of home page
-        drawMainBar()
-        updateStats("total", allData.sheetnames[0], allData.sheetnames[-1])
+            # finally done with creating sheets if it's too late
+            # now move on to actually copying all data into book
+            bookData = allData[time]
+            # for data in inputA, copies into bookData (the input month in the system's book)
+            for row in inputA.rows:
+                for cell in row:
+                    bookData[cell.coordinate] = cell.value
+            allData.save('testingBook.xlsx')
+            # redraws main bar and updates stats on right of home page
+            drawMainBar()
+            updateStats("total", allData.sheetnames[0], allData.sheetnames[-1])
     # if user wants to change graph labels in stats page
     elif event == 'redoStats':
         if values['buttonxMonth']:  # makes bar graph if x is month
