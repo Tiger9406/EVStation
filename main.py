@@ -188,7 +188,7 @@ def drawBar(categories, numbers, canvas, x_label, y_label, title_label):
         _VARS['fig_agg2'] = draw_figure(_VARS['window'][canvas].TKCanvas, _VARS['pltFig'])
 
 # defScatter draws scatter plot with given inputs on given canvas
-def drawScatter(xdata, ydata, canvas, x_label, y_label, title_label):
+def drawScatter(xdata, ydata, canvas, x_label, y_label, title_label, months_range):
     # if pre-existing plot, erase
     if _VARS['fig_agg2'] != False:
         _VARS['fig_agg2'].get_tk_widget().forget()
@@ -197,6 +197,11 @@ def drawScatter(xdata, ydata, canvas, x_label, y_label, title_label):
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title_label)
+    # annotating each individual data entry
+    i = 0
+    while i < len(months_range):
+        plt.annotate(months_range[i], (xdata[i], ydata[i]))
+        i+=1
     _VARS['fig_agg2'] = draw_figure(_VARS['window'][canvas].TKCanvas, _VARS['pltFig'])
 
 # def drawMainBar basically draws the home graph: month (last five) vs net benefit
@@ -405,8 +410,10 @@ while True:
             x_label = _VARS['window'][f'textx{labelButtonx[-1]}'].get()
             labelButtony = findLabelButton('y')
             y_label = _VARS['window'][f'texty{labelButtony[-1]}'].get()
+            months_range = rangeMonth(values['range_time1'], values['range_time2'])
             drawScatter(rangeData(values['range_time1'], values['range_time2'], labelButtonx[-1]),
                         rangeData(values['range_time1'], values['range_time2'], labelButtony[-1]),
-                        'figCanvas2', x_label, y_label, x_label + '  vs  ' + y_label)
+                        'figCanvas2', x_label, y_label, x_label + '  vs  ' + y_label, months_range)
+
 
 _VARS['window'].close()
