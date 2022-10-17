@@ -21,7 +21,7 @@ home_graph_column = [
 #middle column with Title, intake file, intake month of file, and submit button
 home_middle_column = [
     [sg.Text("EV Benefit"), ],
-    [sg.FileBrowse("Enter new month", size=(20, 5), key='-in-'), sg.In(size=(10, 8), enable_events=True, key="time"), sg.Button("Submit")],
+    [sg.FileBrowse("Enter new month", size=(20, 5), key='-in-'), sg.In(size=(10, 8), enable_events=True, key="time"), sg.Button("Submit", key="-submit")],
     [sg.Button("See Stats", size=(30, 8), key='gorange'), ],
 ]
 
@@ -262,6 +262,7 @@ def ifDateValid(month):
                 return True
     return False
 
+print(ifDateValid('10.22'))
 # check if month is greater than the earliest month available
 def ifDateGreater(month2, month1):
     if int(month1[3:5]) > int(month2[3:5]):
@@ -356,7 +357,7 @@ while True:
         _VARS['window']['statspage'].update(visible=False)
         _VARS['window']['homepage'].update(visible=True)
     # when user submits new data, first checks if it's proper format and it's greater than earliest
-    elif event == 'Submit' and ifDateValid(values['time']) and ifDateGreater(values['time'], allData.sheetnames[0]):
+    elif event == '-submit' and ifDateValid(values['time']) and ifDateGreater(allData.sheetnames[0], values['time']):
         _VARS['fig_agg'].get_tk_widget().forget()  # erases main bar graph
         inputS = openpyxl.load_workbook(values['-in-'])  # gets the input workbook
         inputA = inputS.active  # gets the single sheet from input; can use this to get data
@@ -384,6 +385,7 @@ while True:
                     allData.create_sheet("0" + str(lastMonth) + "." + str(lastYear))
                 else:
                     allData.create_sheet(str(lastMonth) + "." + str(lastYear))
+        print('ues')
 
         # finally done with creating sheets if it's too late
         # now move on to actually copying all data into book
