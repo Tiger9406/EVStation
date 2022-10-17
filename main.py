@@ -346,7 +346,7 @@ while True:
         _VARS['window']['homepage'].update(visible=False)
         _VARS['window']['statspage'].update(visible=False)
         _VARS['window']['rangepage'].update(visible=True)
-    elif event == 'gohome' or event == 'gohome2' or event == 'gorange3':
+    elif event == 'gohome' or event == 'gohome2' or event == 'gohome3':
         _VARS['window']['gorange3'].update(visible=False)
         _VARS['window']['gohome3'].update(visible=False)
         _VARS['window']['statsRight'].update(visible=False)
